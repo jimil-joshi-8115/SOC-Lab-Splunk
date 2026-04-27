@@ -72,7 +72,7 @@ Splunk successfully detected **7 failed login attempts** against account `hp` on
 https://github.com/jimil-joshi-8115/SOC-Lab-Splunk/blob/main/screenshots/01_raw_events.png.png
 
 ### Stats Table — Failed Logins by Account
-![Stats Table](screenshots/02_stats_table.png)
+https://github.com/jimil-joshi-8115/SOC-Lab-Splunk/blob/main/screenshots/02_stats_table.png.png
 
 ---
 
