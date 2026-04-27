@@ -69,7 +69,7 @@ Splunk successfully detected **7 failed login attempts** against account `hp` on
 ## 📸 Screenshots
 
 ### Raw Events in Splunk
-![Raw Events](screenshots/01_raw_events.png)
+screenshots/01_raw_events.png.png
 
 ### Stats Table — Failed Logins by Account
 ![Stats Table](screenshots/02_stats_table.png)
