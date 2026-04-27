@@ -1,0 +1,25 @@
+# Brute Force Login Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 27-04-2026
+# MITRE ATT&CK: T1110 - Brute Force
+# Event ID: 4625 - An account failed to log on
+
+# -----------------------------------------------
+# Query 1: Show all failed login events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+
+# -----------------------------------------------
+# Query 2: Count failed logins by Account and Host
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| stats count by Account_Name, ComputerName
+| sort -count
+
+# -----------------------------------------------
+# Query 3: Alert threshold - 5 or more failures
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+| stats count by Account_Name, ComputerName
+| where count >= 5
+| sort -count
