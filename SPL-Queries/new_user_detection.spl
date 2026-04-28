@@ -1,0 +1,23 @@
+# New User Account Created - SPL Query
+# Author: Jimil Joshi
+# Date: 28-04-2026
+# MITRE ATT&CK: T1136 - Create Account
+# Event ID: 4720 - A user account was created
+
+# -----------------------------------------------
+# Query 1: Show all new user creation events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4720
+
+# -----------------------------------------------
+# Query 2: Table view - who created what account
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4720
+| table _time, Account_Name, ComputerName, Security_ID
+
+# -----------------------------------------------
+# Query 3: Alert - any new user created
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4720
+| stats count by Account_Name, ComputerName
+| sort -count
