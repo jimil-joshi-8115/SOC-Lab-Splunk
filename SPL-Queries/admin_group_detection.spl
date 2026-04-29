@@ -1,0 +1,23 @@
+# User Added to Admin Group - SPL Query
+# Author: Jimil Joshi
+# Date: 29-04-2026
+# MITRE ATT&CK: T1098 - Account Manipulation
+# Event ID: 4732 - A member was added to a security-enabled local group
+
+# -----------------------------------------------
+# Query 1: Show all group membership change events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4732
+
+# -----------------------------------------------
+# Query 2: Table view - who was added to which group
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4732
+| table _time, Account_Name, ComputerName, Security_ID, Member_Security_ID
+
+# -----------------------------------------------
+# Query 3: Count group changes by account
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4732
+| stats count by Account_Name, ComputerName
+| sort -count
