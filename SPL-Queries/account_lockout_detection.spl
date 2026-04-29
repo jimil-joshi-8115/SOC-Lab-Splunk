@@ -1,0 +1,23 @@
+# Account Lockout Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 29-04-2026
+# MITRE ATT&CK: T1110 - Brute Force / Account Lockout
+# Event ID: 4740 - A user account was locked out
+
+# -----------------------------------------------
+# Query 1: Show all account lockout events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4740
+
+# -----------------------------------------------
+# Query 2: Table view - who got locked and when
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4740
+| table _time, Account_Name, ComputerName, Caller_Computer_Name
+
+# -----------------------------------------------
+# Query 3: Count lockouts by account
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4740
+| stats count by Account_Name, ComputerName
+| sort -count
