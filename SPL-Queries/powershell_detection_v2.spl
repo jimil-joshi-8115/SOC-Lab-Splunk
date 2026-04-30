@@ -1,0 +1,44 @@
+# Suspicious PowerShell Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 30-04-2026
+# MITRE ATT&CK: T1059.001 - Command and Scripting Interpreter: PowerShell
+# Event ID: 4104 - PowerShell Script Block Logging
+
+# -----------------------------------------------
+# PART 1 - Basic PowerShell Detection
+# -----------------------------------------------
+
+# Query 1: Show all PowerShell script block events
+index=main EventCode=4104
+
+# Query 2: Table view - show commands executed
+index=main EventCode=4104
+| table _time, ComputerName, Message
+| sort -_time
+
+# Query 3: Count PowerShell events by computer
+index=main EventCode=4104
+| stats count by ComputerName
+| sort -count
+
+# -----------------------------------------------
+# PART 2 - Advanced Threat Hunting
+# -----------------------------------------------
+
+# Query 4: Hunt for suspicious recon commands
+index=main EventCode=4104
+| search Message="*net localgroup*" OR Message="*whoami*" OR Message="*Get-LocalUser*" OR Message="*net user*" OR Message="*ipconfig*"
+| table _time, ComputerName, Message
+| sort -_time
+
+# Query 5: Hunt for malicious PowerShell patterns
+index=main EventCode=4104
+| search Message="*Invoke*" OR Message="*WebClient*" OR Message="*ToBase64*" OR Message="*payload*" OR Message="*url*" OR Message="*DownloadString*" OR Message="*bypass*" OR Message="*EncodedCommand*"
+| table _time, ComputerName, Message
+| sort -_time
+
+# Query 6: Hunt for ALL suspicious keywords combined
+index=main EventCode=4104
+| search Message="*Invoke-Expression*" OR Message="*IEX*" OR Message="*Net.WebClient*" OR Message="*DownloadString*" OR Message="*FromBase64String*" OR Message="*ToBase64String*" OR Message="*bypass*" OR Message="*hidden*" OR Message="*whoami*" OR Message="*net localgroup*"
+| table _time, ComputerName, Message
+| sort -_time
