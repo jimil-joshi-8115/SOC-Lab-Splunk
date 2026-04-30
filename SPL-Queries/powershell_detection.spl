@@ -1,0 +1,39 @@
+# Suspicious PowerShell Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 30-04-2026
+# MITRE ATT&CK: T1059.001 - Command and Scripting Interpreter: PowerShell
+# Event ID: 4104 - PowerShell Script Block Logging
+
+# -----------------------------------------------
+# Query 1: Show all PowerShell script block events
+# -----------------------------------------------
+index=main EventCode=4104
+
+# -----------------------------------------------
+# Query 2: Table view - show commands executed
+# -----------------------------------------------
+index=main EventCode=4104
+| table _time, ComputerName, Message
+| sort -_time
+
+# -----------------------------------------------
+# Query 3: Show UserID and ScriptBlockText
+# -----------------------------------------------
+index=main EventCode=4104
+| table _time, ComputerName, UserID, ScriptBlockText
+| sort -_time
+
+# -----------------------------------------------
+# Query 4: Count PowerShell events by computer
+# -----------------------------------------------
+index=main EventCode=4104
+| stats count by ComputerName
+| sort -count
+
+# -----------------------------------------------
+# Query 5: Hunt for suspicious keywords
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*net localgroup*" OR Message="*whoami*" OR Message="*Get-LocalUser*" OR Message="*invoke*" OR Message="*downloadstring*" OR Message="*bypass*"
+| table _time, ComputerName, Message
+| sort -_time
