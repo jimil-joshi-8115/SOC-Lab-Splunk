@@ -1,0 +1,40 @@
+# RDP & Interactive Login Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 30-04-2026
+# MITRE ATT&CK: T1078 - Valid Accounts / T1021.001 - Remote Desktop Protocol
+# Event ID: 4624 - An account was successfully logged on
+
+# -----------------------------------------------
+# Query 1: Show all successful login events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+
+# -----------------------------------------------
+# Query 2: Filter Interactive logins (Logon Type 2)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+| where Logon_Type=2
+| table _time, Account_Name, ComputerName, Logon_Type
+
+# -----------------------------------------------
+# Query 3: Filter RDP logins (Logon Type 10)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+| where Logon_Type=10
+| table _time, Account_Name, ComputerName, Logon_Type, Source_Network_Address
+
+# -----------------------------------------------
+# Query 4: Count logins by account and type
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+| where Logon_Type=2
+| stats count by Account_Name, ComputerName, Logon_Type
+| sort -count
+
+# -----------------------------------------------
+# Logon Type Reference:
+# Type 2  = Interactive (local login)
+# Type 3  = Network
+# Type 10 = RemoteInteractive (RDP)
+# Type 11 = CachedInteractive
+# -----------------------------------------------
