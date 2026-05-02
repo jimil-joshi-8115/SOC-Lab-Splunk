@@ -1,0 +1,44 @@
+# Windows Firewall Disabled Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 02-05-2026
+# MITRE ATT&CK: T1562.004 - Impair Defenses: Disable or Modify System Firewall
+# Event ID: 4950 (ideal) / 4104 (alternative via PowerShell logging)
+
+# -----------------------------------------------
+# Query 1: Ideal - Event ID 4950 (requires Firewall logs)
+# -----------------------------------------------
+index=main EventCode=4950
+
+# -----------------------------------------------
+# Query 2: Alternative - Detect via PowerShell logging
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*NetFirewall*" OR Message="*Enabled False*" OR Message="*Enabled True*"
+| table _time, ComputerName, Message
+| sort -_time
+| head 20
+
+# -----------------------------------------------
+# Query 3: Stats - firewall changes by computer
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*NetFirewall*" OR Message="*Enabled False*" OR Message="*Enabled True*"
+| stats count by ComputerName
+| sort -count
+
+# -----------------------------------------------
+# Query 4: Hunt for firewall disable specifically
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*Enabled False*" OR Message="*disable*" OR Message="*Set-NetFirewallProfile*"
+| table _time, ComputerName, Message
+| sort -_time
+
+# -----------------------------------------------
+# NOTE: For production SOC environments
+# Add this to inputs.conf to enable Event ID 4950:
+# [WinEventLog://Microsoft-Windows-Windows Firewall With Advanced Security/Firewall]
+# disabled = 0
+# index = main
+# renderXml = 0
+# -----------------------------------------------
