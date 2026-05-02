@@ -1,0 +1,44 @@
+# Process Creation Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 01-05-2026
+# MITRE ATT&CK: T1059 - Command and Scripting Interpreter
+# Event ID: 4688 - A new process has been created
+
+# -----------------------------------------------
+# Query 1: Show all process creation events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+
+# -----------------------------------------------
+# Query 2: Filter suspicious processes
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*cmd.exe*" OR New_Process_Name="*powershell.exe*" OR New_Process_Name="*net.exe*"
+| table _time, ComputerName, Account_Name, New_Process_Name
+| sort -_time
+| head 20
+
+# -----------------------------------------------
+# Query 3: Stats - most run processes
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| stats count by New_Process_Name, Account_Name
+| sort -count
+| head 20
+
+# -----------------------------------------------
+# Query 4: Command line details - key attacker tools
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*cmd.exe*" OR New_Process_Name="*net.exe*" OR New_Process_Name="*whoami*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+| head 10
+
+# -----------------------------------------------
+# Query 5: Hunt for recon commands in command line
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search Process_Command_Line="*whoami*" OR Process_Command_Line="*net user*" OR Process_Command_Line="*net localgroup*" OR Process_Command_Line="*systeminfo*" OR Process_Command_Line="*ipconfig*" OR Process_Command_Line="*tasklist*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
