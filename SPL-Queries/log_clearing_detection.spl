@@ -1,0 +1,31 @@
+# Log Clearing Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 02-05-2026
+# MITRE ATT&CK: T1070.001 - Indicator Removal: Clear Windows Event Logs
+# Event ID: 1102 - The audit log was cleared
+
+# -----------------------------------------------
+# Query 1: Show all log clearing events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=1102
+
+# -----------------------------------------------
+# Query 2: Table view - who cleared the logs
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=1102
+| table _time, ComputerName, Account_Name, Message
+| sort -_time
+
+# -----------------------------------------------
+# Query 3: Count log clearing by account
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=1102
+| stats count by Account_Name, ComputerName
+| sort -count
+
+# -----------------------------------------------
+# Query 4: Correlate log clearing with other suspicious events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=1102 OR EventCode=4625 OR EventCode=4720 OR EventCode=4732
+| table _time, EventCode, Account_Name, ComputerName
+| sort -_time
