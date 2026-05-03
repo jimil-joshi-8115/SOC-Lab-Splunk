@@ -1,0 +1,42 @@
+# Scheduled Task Created Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 03-05-2026
+# MITRE ATT&CK: T1053.005 - Scheduled Task/Job: Scheduled Task
+# Event ID: 4698 (ideal) / 4104 (alternative via PowerShell logging)
+
+# -----------------------------------------------
+# Query 1: Ideal - Event ID 4698 (requires TaskScheduler logs)
+# -----------------------------------------------
+index=main EventCode=4698
+
+# -----------------------------------------------
+# Query 2: Alternative - Detect via PowerShell logging
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*schtasks*" OR Message="*ScheduledTask*" OR Message="*WindowsUpdate*"
+| table _time, ComputerName, Message
+| sort -_time
+| head 20
+
+# -----------------------------------------------
+# Query 3: Stats - scheduled task events by computer
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*schtasks*" OR Message="*ScheduledTask*" OR Message="*WindowsUpdate*"
+| stats count by ComputerName
+| sort -count
+
+# -----------------------------------------------
+# Query 4: Hunt for suspicious task names
+# -----------------------------------------------
+index=main EventCode=4104
+| search Message="*schtasks*" OR Message="*New-ScheduledTask*" OR Message="*Register-ScheduledTask*"
+| table _time, ComputerName, Message
+| sort -_time
+
+# -----------------------------------------------
+# Query 5: Detect via TaskScheduler log source
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-TaskScheduler/Operational"
+| table _time, ComputerName, Message
+| sort -_time
