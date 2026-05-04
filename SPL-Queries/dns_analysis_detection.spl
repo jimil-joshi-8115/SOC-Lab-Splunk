@@ -1,0 +1,49 @@
+# DNS Query Analysis - SPL Query
+# Author: Jimil Joshi
+# Date: 04-05-2026
+# MITRE ATT&CK: T1071.004 - Application Layer Protocol: DNS
+# Source: Windows DNS Client Operational Log
+
+# -----------------------------------------------
+# Query 1: Show all DNS events
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| head 20
+
+# -----------------------------------------------
+# Query 2: Extract and count domains queried
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| rex field=_raw "(?P<domain>[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"
+| stats count by domain
+| sort -count
+| head 20
+
+# -----------------------------------------------
+# Query 3: Hunt for suspicious domains
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| search _raw="*xyz*" OR _raw="*\.ru*" OR _raw="*malware*" OR _raw="*suspicious*" OR _raw="*evil*" OR _raw="*c2*"
+| table _time, _raw
+| sort -_time
+
+# -----------------------------------------------
+# Query 4: Hunt for DGA-like domains
+# Long random looking domain names
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| rex field=_raw "(?P<domain>[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"
+| eval domain_length=len(domain)
+| where domain_length > 30
+| stats count by domain, domain_length
+| sort -domain_length
+
+# -----------------------------------------------
+# Query 5: High frequency DNS queries
+# Same domain queried many times = suspicious
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| rex field=_raw "(?P<domain>[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"
+| stats count by domain
+| where count > 50
+| sort -count
