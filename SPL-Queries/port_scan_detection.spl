@@ -1,0 +1,46 @@
+# Port Scan Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 04-05-2026
+# MITRE ATT&CK: T1046 - Network Service Discovery
+# Source: Windows Firewall Log (pfirewall.log)
+
+# -----------------------------------------------
+# Query 1: Show all firewall log events
+# -----------------------------------------------
+index=main sourcetype="firewall_log"
+| head 20
+
+# -----------------------------------------------
+# Query 2: Extract fields and count by IP
+# -----------------------------------------------
+index=main sourcetype="firewall_log"
+| rex field=_raw "(?P<action>\w+)\s+(?P<protocol>\w+)\s+(?P<src_ip>[\d.]+)\s+(?P<dst_ip>[\d.]+)\s+(?P<src_port>\d+)\s+(?P<dst_port>\d+)"
+| stats count by src_ip, dst_ip, action
+| sort -count
+
+# -----------------------------------------------
+# Query 3: Count connections per destination port
+# -----------------------------------------------
+index=main sourcetype="firewall_log"
+| rex field=_raw "(?P<action>\w+)\s+(?P<protocol>\w+)\s+(?P<src_ip>[\d.]+)\s+(?P<dst_ip>[\d.]+)\s+(?P<src_port>\d+)\s+(?P<dst_port>\d+)"
+| stats count by dst_port, action
+| sort -count
+| head 20
+
+# -----------------------------------------------
+# Query 4: Hunt for port scan pattern
+# Single IP hitting many ports in short time
+# -----------------------------------------------
+index=main sourcetype="firewall_log"
+| rex field=_raw "(?P<action>\w+)\s+(?P<protocol>\w+)\s+(?P<src_ip>[\d.]+)\s+(?P<dst_ip>[\d.]+)\s+(?P<src_port>\d+)\s+(?P<dst_port>\d+)"
+| stats dc(dst_port) as unique_ports, count by src_ip
+| where unique_ports > 10
+| sort -unique_ports
+
+# -----------------------------------------------
+# Port Scan Indicators:
+# - Same src_ip hitting many dst_ports
+# - Mix of ALLOW and DROP actions
+# - High event count in short time window
+# - Sequential port numbers
+# -----------------------------------------------
