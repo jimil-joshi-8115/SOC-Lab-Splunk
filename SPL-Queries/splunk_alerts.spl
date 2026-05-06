@@ -1,0 +1,39 @@
+# Splunk Alerts - SPL Queries
+# Author: Jimil Joshi
+# Date: 06-05-2026
+# Purpose: Automated alerting for SOC L1 monitoring
+
+# -----------------------------------------------
+# Alert 1: Brute Force Detection Alert
+# Severity: High
+# Schedule: Every 1 minute (cron: */1 * * * *)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4625
+
+# -----------------------------------------------
+# Alert 2: Log Clearing Detected — Critical
+# Severity: Critical
+# Type: Real-time
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=1102
+
+# -----------------------------------------------
+# Alert 3: New User Account Created Alert
+# Severity: High
+# Type: Real-time
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4720
+
+# -----------------------------------------------
+# Alert 4: Privilege Escalation Alert
+# Severity: Critical
+# Type: Real-time
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4732
+
+# -----------------------------------------------
+# Alert 5: Malicious Service Installed Alert
+# Severity: Critical
+# Type: Real-time
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:System" EventCode=7045
