@@ -1,0 +1,39 @@
+# Correlation Rules - SPL Queries
+# Author: Jimil Joshi
+# Date: 07-05-2026
+# Purpose: Advanced threat detection by correlating multiple events
+
+# -----------------------------------------------
+# Correlation Rule 1: Brute Force then Successful Login
+# Detects: Failed logins followed by successful login
+# MITRE: T1110 - Brute Force + T1078 - Valid Accounts
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security"
+| eval event_type=case(EventCode="4625","Failed Login", EventCode="4624","Successful Login")
+| where isnotnull(event_type)
+| stats count(eval(EventCode="4625")) as failed_count, count(eval(EventCode="4624")) as success_count by Account_Name, ComputerName
+| where failed_count >= 3 AND success_count >= 1
+| eval risk="HIGH — Possible Successful Brute Force!"
+| table Account_Name, ComputerName, failed_count, success_count, risk
+
+# -----------------------------------------------
+# Correlation Rule 2: New User Created then Added to Admins
+# Detects: Backdoor admin account creation
+# MITRE: T1136 - Create Account + T1098 - Account Manipulation
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4720 OR EventCode=4732
+| stats count(eval(EventCode="4720")) as new_user, count(eval(EventCode="4732")) as added_to_admin by Account_Name, ComputerName
+| where new_user >= 1 AND added_to_admin >= 1
+| eval risk="CRITICAL — Backdoor Admin Account Created!"
+| table Account_Name, ComputerName, new_user, added_to_admin, risk
+
+# -----------------------------------------------
+# Correlation Rule 3: Attack then Evidence Destroyed
+# Detects: Failed logins followed by log clearing
+# MITRE: T1110 - Brute Force + T1070.001 - Clear Windows Event Logs
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4625 OR EventCode=1102
+| stats count(eval(EventCode="4625")) as failed_logins, count(eval(EventCode="1102")) as log_cleared by Account_Name, ComputerName
+| where failed_logins >= 3 AND log_cleared >= 1
+| eval risk="CRITICAL — Attack then Evidence Destroyed!"
+| table Account_Name, ComputerName, failed_logins, log_cleared, risk
