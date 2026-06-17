@@ -1,0 +1,54 @@
+# Ransomware Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 17-06-2026
+# Scenario: Ransomware Simulation — File Encryption + Shadow Copy Deletion + Ransom Note
+# MITRE ATT&CK: T1486 (Data Encrypted for Impact) / T1490 (Inhibit System Recovery)
+
+# -----------------------------------------------
+# Query 1: Shadow Copy Deletion Detection (Primary Indicator)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*vssadmin*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# -----------------------------------------------
+# Query 2: Refined Ransomware Indicator Correlation
+# (Tuned to remove false positives from browser/app processes)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*vssadmin*" OR Process_Command_Line="*delete shadows*" OR Process_Command_Line="*.locked*"
+| eval Indicator=case(
+    match(Process_Command_Line, "vssadmin"), "Shadow Copy Deletion",
+    match(Process_Command_Line, "\.locked"), "Encrypted File Extension")
+| table _time, Account_Name, ComputerName, Indicator, Process_Command_Line
+| sort -_time
+
+# -----------------------------------------------
+# Query 3 (Lesson Learned): Initial Broad Query — Caused False Positives
+# Kept here for documentation of detection tuning process
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*vssadmin*" OR Process_Command_Line="*delete shadows*" OR Process_Command_Line="*.locked*" OR Process_Command_Line="*ren*"
+| eval Indicator=case(
+    match(Process_Command_Line, "vssadmin"), "Shadow Copy Deletion",
+    match(Process_Command_Line, "ren"), "File Rename Activity")
+| table _time, Account_Name, ComputerName, Indicator, Process_Command_Line
+| sort -_time
+# NOTE: "ren" matched substrings inside unrelated processes (e.g. "renderer" in
+# Edge WebView / WhatsApp Desktop command lines), producing false positives.
+# Fixed in Query 2 by removing the overly broad "ren" match condition.
+
+# -----------------------------------------------
+# Query 4: Check for cmd.exe Activity in Time Window (Validation Step)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*cmd.exe*"
+| table _time, Process_Command_Line
+| sort -_time
+| head 20
+# RESULT: No process-level evidence of "echo" or "ren" shell built-in commands.
+# These commands do not always spawn a logged child process for EventCode 4688 —
+# a known detection gap. File rename and ransom note creation should be confirmed
+# via File Integrity Monitoring (FIM) or Sysmon Event ID 11 (FileCreate) /
+# Event ID 23 (FileDelete) in a production environment.
