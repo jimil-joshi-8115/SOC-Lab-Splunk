@@ -1,0 +1,49 @@
+# Lateral Movement Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 18-06-2026
+# Scenario: Lateral Movement — Admin Share Access + WMI Remote Execution
+# MITRE ATT&CK: T1021 (Remote Services) / T1021.002 (SMB/Windows Admin Shares) / T1078 (Valid Accounts)
+
+# -----------------------------------------------
+# Query 1: Network Logon Detection (Logon Type 3)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+| where Logon_Type=3
+| table _time, Account_Name, ComputerName, Logon_Type, Source_Network_Address
+| sort -_time
+
+# -----------------------------------------------
+# Query 2: Admin Share Access Detection
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=5140
+| table _time, Account_Name, ComputerName, Share_Name
+| sort -_time
+
+# -----------------------------------------------
+# Query 3: WMI Remote Execution Detection (Primary Indicator)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*wmic*" OR Process_Command_Line="*node*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# -----------------------------------------------
+# Query 4: Full Lateral Movement Correlation
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security"
+(EventCode=4624 OR EventCode=5140 OR EventCode=4688)
+| eval Indicator=case(
+    EventCode="4624" AND Logon_Type="3","Network Logon",
+    EventCode="5140","Admin Share Access",
+    match(Process_Command_Line, "wmic"),"Remote WMI Execution")
+| where isnotnull(Indicator)
+| stats count by Indicator, Account_Name, ComputerName
+| sort Indicator
+
+# -----------------------------------------------
+# Query 5: Logon Type Baseline — Behavioral Anomaly Check
+# Shows normal Interactive (Type 2) vs abnormal Network (Type 3) logons
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4624
+| stats count by Account_Name, Logon_Type, ComputerName
+| sort Account_Name
