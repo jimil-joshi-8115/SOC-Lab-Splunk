@@ -1,0 +1,57 @@
+# Data Exfiltration Detection - SPL Query
+# Author: Jimil Joshi
+# Date: 19-06-2026
+# Scenario: Data Exfiltration — Data Staging + DNS Tunneling
+# MITRE ATT&CK: T1560 (Archive Collected Data) / T1048 (Exfiltration Over Alternative Protocol) / T1071.004 (DNS)
+
+# -----------------------------------------------
+# Query 1: Detect Data Staging via Compression (PowerShell)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*powershell*" Process_Command_Line="*Compress-Archive*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# -----------------------------------------------
+# Query 2: Detect DNS Queries to Suspicious Domain (via DNS Client Operational log)
+# NOTE: Returned 0 events in this lab session — see detection gap note below.
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| search Message="*exfil-attacker.com*"
+| table _time, ComputerName, Message
+| sort -_time
+
+# -----------------------------------------------
+# Query 3: Broad Search Across All Sourcetypes (Validation Step)
+# Used to confirm where the exfiltration evidence actually landed
+# -----------------------------------------------
+index=main "exfil-attacker"
+| table _time, sourcetype, Message
+| sort -_time
+
+# -----------------------------------------------
+# Query 4: Final Detection Query — nslookup Commands via Process Creation (4688)
+# This is the query that successfully captured the DNS tunneling pattern
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*nslookup*"
+| table _time, Account_Name, Process_Command_Line
+| sort -_time
+
+# -----------------------------------------------
+# Query 5: Full Exfiltration Correlation — Staging + DNS Tunneling
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*Compress-Archive*" OR New_Process_Name="*nslookup*")
+| eval Indicator=case(
+    match(Process_Command_Line, "Compress-Archive"),"Data Staging — Compression",
+    match(New_Process_Name, "nslookup"),"DNS Tunneling — Possible Exfiltration")
+| table _time, Account_Name, Indicator, Process_Command_Line
+| sort _time
+
+# -----------------------------------------------
+# Query 6: DNS Query Volume Over Time (Tunneling Indicator)
+# -----------------------------------------------
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+| search New_Process_Name="*nslookup*" Process_Command_Line="*exfil-attacker*"
+| timechart span=1s count
