@@ -1,0 +1,78 @@
+// =====================================================================
+// Scenario 05 — Phishing Attack Detection
+// MITRE ATT&CK: T1566.001 (Spearphishing Attachment) | T1204.002 (User
+// Execution: Malicious File) | T1105 (Ingress Tool Transfer)
+// Incident Report: IR-2026-006
+// Analyst: Jimil Joshi
+// =====================================================================
+
+// ---------------------------------------------------------------------
+// Query 1: Baseline check — confirm process creation logging is active
+// ---------------------------------------------------------------------
+index=* EventCode=4688
+| head 20
+
+
+// ---------------------------------------------------------------------
+// Query 2: Detect simulated malicious document execution
+// (macro-trigger simulation — WINWORD.EXE spawn simulated via cmd.exe)
+// ---------------------------------------------------------------------
+index=* EventCode=4688
+Process_Command_Line="*WINWORD*"
+| table _time, host, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+
+// ---------------------------------------------------------------------
+// Query 3: Detect payload download via certutil (LOLBin abuse — T1105)
+// ---------------------------------------------------------------------
+index=* EventCode=4688
+New_Process_Name="*certutil.exe"
+| table _time, host, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+
+// ---------------------------------------------------------------------
+// Query 4: Detect simulated dropped-payload execution attempt
+// ---------------------------------------------------------------------
+index=* EventCode=4688
+Process_Command_Line="*Payload executed*"
+| table _time, host, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+
+// ---------------------------------------------------------------------
+// Query 5: Combined attack chain — full phishing simulation timeline
+// (use this as the primary investigation / reporting query)
+// ---------------------------------------------------------------------
+index=* EventCode=4688
+(Process_Command_Line="*WINWORD*")
+OR (New_Process_Name="*certutil.exe")
+OR (Process_Command_Line="*Payload executed*")
+| table _time, host, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+
+// ---------------------------------------------------------------------
+// Query 6 (Generalized / Production version): broader detection logic
+// intended for real environments — included for portfolio completeness.
+// Looks for Office spawning non-Office children, encoded/hidden
+// PowerShell, common download cmdlets, and Temp-directory execution.
+// ---------------------------------------------------------------------
+index=* (EventCode=4688 OR EventCode=4104)
+(
+  (ParentProcessName="*WINWORD.EXE*" OR ParentProcessName="*EXCEL.EXE*" OR ParentProcessName="*OUTLOOK.EXE*")
+  NOT (NewProcessName="*WINWORD.EXE*" OR NewProcessName="*EXCEL.EXE*")
+)
+OR (
+  (CommandLine="*-enc*" OR CommandLine="*-EncodedCommand*")
+  AND (CommandLine="*-w hidden*" OR CommandLine="*-windowstyle hidden*" OR CommandLine="*-nop*")
+)
+OR (
+  CommandLine="*Invoke-WebRequest*" OR CommandLine="*IWR*" OR CommandLine="*certutil*-urlcache*" OR CommandLine="*bitsadmin*"
+)
+OR (
+  NewProcessName="*\\AppData\\Local\\Temp\\*.exe" OR NewProcessName="*\\Temp\\*.exe"
+)
+| table _time, host, Account_Name, ParentProcessName, NewProcessName, CommandLine
+| sort -_time
