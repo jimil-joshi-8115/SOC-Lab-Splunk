@@ -1,0 +1,35 @@
+# Scenario 07 — Persistence via Registry Run Keys (T1547.001)
+
+# Query 1: Detect reg.exe writing to Run key (persistence creation)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*reg.exe"
+Process_Command_Line="*CurrentVersion\\Run*" Process_Command_Line="*add*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect reg.exe verification/query of Run key
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*reg.exe"
+Process_Command_Line="*CurrentVersion\\Run*" Process_Command_Line="*query*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Detect reg.exe removing Run key entry (cleanup/anti-forensics check)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*reg.exe"
+Process_Command_Line="*CurrentVersion\\Run*" Process_Command_Line="*delete*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 4: Combined view — full registry persistence lifecycle (add, query, delete)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*reg.exe"
+Process_Command_Line="*CurrentVersion\\Run*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 5: Registry value-change auditing (alternate evidence source, if enabled)
+index=main sourcetype="WinEventLog:Security" EventCode=4657
+ObjectName="*\\Run"
+| table _time, Account_Name, ObjectName, OldValue, NewValue, ProcessName
+| sort -_time
