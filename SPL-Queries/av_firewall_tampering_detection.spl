@@ -1,0 +1,29 @@
+# Scenario 08 — Defense Evasion: AV/Security Tampering (T1562.001)
+
+# Query 1: Detect PowerShell disabling Defender real-time protection
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*Set-MpPreference*" Process_Command_Line="*DisableRealtimeMonitoring*true*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect netsh disabling Windows Firewall
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*netsh.exe"
+Process_Command_Line="*advfirewall*" Process_Command_Line="*state off*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Detect re-enablement (cleanup / remediation verification)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(New_Process_Name="*powershell.exe" Process_Command_Line="*DisableRealtimeMonitoring*false*")
+OR (New_Process_Name="*netsh.exe" Process_Command_Line="*state on*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 4: Combined view — full defense evasion + remediation lifecycle
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(New_Process_Name="*powershell.exe" Process_Command_Line="*DisableRealtimeMonitoring*")
+OR (New_Process_Name="*netsh.exe" Process_Command_Line="*advfirewall*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
