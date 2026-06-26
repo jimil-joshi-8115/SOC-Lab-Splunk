@@ -1,0 +1,26 @@
+# Scenario 11 — Kerberoasting (T1558.003)
+
+# Query 1: Detect SPN enumeration via setspn.exe
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*setspn*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect Rubeus-style kerberoasting tool reference
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*Rubeus*" Process_Command_Line="*kerberoast*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Detect PowerShell native Kerberos ticket request technique
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*KerberosRequestorSecurityToken*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 4: Combined view — full Kerberoasting attempt chain
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*setspn*") OR (Process_Command_Line="*Rubeus*") OR (Process_Command_Line="*KerberosRequestorSecurityToken*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
