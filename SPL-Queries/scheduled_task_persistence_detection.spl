@@ -1,0 +1,37 @@
+# Scenario 12 — Scheduled Task Persistence: Remote-Trigger Variant (T1053.005)
+
+# Query 1: Detect scheduled task creation via schtasks.exe
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*schtasks.exe"
+Process_Command_Line="*create*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect manual task execution (attacker confirming the task works)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*schtasks.exe"
+Process_Command_Line="*run*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Detect task deletion (cleanup / anti-forensics check)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*schtasks.exe"
+Process_Command_Line="*delete*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 4: Combined view — full scheduled task persistence lifecycle
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*schtasks.exe"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 5 (Tuning note): isolate only suspicious task names/triggers, focusing
+# on logon-triggered tasks pointing to Temp/AppData paths — a stronger
+# production-style filter than schtasks.exe alone
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*schtasks.exe"
+Process_Command_Line="*onlogon*" Process_Command_Line="*Temp*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
