@@ -1,0 +1,29 @@
+# Scenario 13 — Clipboard & Screen Capture Collection (T1115 / T1113)
+
+# Query 1: Detect PowerShell clipboard collection
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*Get-Clipboard*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect PowerShell screen capture via .NET Bitmap/CopyFromScreen
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*CopyFromScreen*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Detect repeated/periodic screen captures (collection pattern, not single use)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*CopyFromScreen*"
+| stats count as capture_count, earliest(_time) as first_capture, latest(_time) as last_capture by Account_Name
+| where capture_count >= 2
+
+# Query 4: Combined view — full collection activity chain (clipboard + screen capture)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+(Process_Command_Line="*Get-Clipboard*" OR Process_Command_Line="*CopyFromScreen*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
