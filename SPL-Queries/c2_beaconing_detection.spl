@@ -1,0 +1,31 @@
+# Scenario 14 — C2 via DNS/HTTP Beaconing (T1071.004 / T1071.001)
+
+# Query 1: Detect repeated DNS beacon check-ins to the same domain
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*nslookup.exe"
+Process_Command_Line="*c2-checkin.example.com*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort _time
+
+# Query 2: Detect HTTP-based beacon check-in via PowerShell
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*Invoke-WebRequest*" Process_Command_Line="*checkin*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Calculate time deltas between consecutive DNS beacon check-ins
+# (regular interval is the actual beaconing signature, not just repetition)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*nslookup.exe"
+Process_Command_Line="*c2-checkin.example.com*"
+| sort _time
+| delta _time as time_since_last
+| table _time, Account_Name, Process_Command_Line, time_since_last
+
+# Query 4: Combined view — full beaconing activity chain (DNS + HTTP)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(New_Process_Name="*nslookup.exe" Process_Command_Line="*c2-checkin*")
+OR (New_Process_Name="*powershell.exe" Process_Command_Line="*checkin*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
