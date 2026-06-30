@@ -1,0 +1,227 @@
+<dashboard version="1.1" theme="dark">
+  <label>SOC Lab - 15 Scenario Campaign Overview</label>
+  <description>Unified dashboard covering all 15 simulated attack scenarios (Insider Threat through Timestomping), mapped to MITRE ATT&amp;CK. Built by Jimil Joshi.</description>
+
+  <row>
+    <panel>
+      <single>
+        <title>Total Scenario Events Detected</title>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*insider*" OR Process_Command_Line="*vssadmin*" OR Process_Command_Line="*wmic*"
+ OR Process_Command_Line="*nslookup*c2-checkin*" OR Process_Command_Line="*certutil*urlcache*"
+ OR Process_Command_Line="*mshta*" OR Process_Command_Line="*rundll32*" OR Process_Command_Line="*regsvr32*"
+ OR Process_Command_Line="*CurrentVersion\\Run*" OR Process_Command_Line="*DisableRealtimeMonitoring*"
+ OR Process_Command_Line="*advfirewall*" OR Process_Command_Line="*lsass*"
+ OR Process_Command_Line="*setspn*" OR Process_Command_Line="*Rubeus*" OR Process_Command_Line="*KerberosRequestorSecurityToken*"
+ OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*" OR Process_Command_Line="*Get-Clipboard*"
+ OR Process_Command_Line="*CopyFromScreen*" OR Process_Command_Line="*checkin*"
+ OR Process_Command_Line="*CreationTime*LastWriteTime*")
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| stats count
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Unique Scenarios with Detected Activity</title>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| eval scenario=case(
+    match(Process_Command_Line, "(?i)insider"), "01 Insider Threat",
+    match(Process_Command_Line, "(?i)vssadmin"), "02 Ransomware",
+    match(Process_Command_Line, "(?i)wmic"), "03 Lateral Movement",
+    match(Process_Command_Line, "(?i)nslookup.*c2-checkin"), "14 C2 Beaconing",
+    match(Process_Command_Line, "(?i)nslookup"), "04 Data Exfiltration",
+    match(Process_Command_Line, "(?i)certutil.*urlcache"), "05 Phishing Attack",
+    match(Process_Command_Line, "(?i)mshta|rundll32|regsvr32"), "06 LOLBin Execution",
+    match(Process_Command_Line, "(?i)CurrentVersion\\\\Run"), "07 Registry Persistence",
+    match(Process_Command_Line, "(?i)DisableRealtimeMonitoring|advfirewall"), "08 AV Firewall Tampering",
+    match(Process_Command_Line, "(?i)lsass"), "09 Credential Dumping",
+    match(Process_Command_Line, "(?i)setspn|Rubeus|KerberosRequestorSecurityToken"), "11 Kerberoasting",
+    match(Process_Command_Line, "(?i)MicrosoftEdgeUpdateTaskMachine"), "12 Scheduled Task Persistence",
+    match(Process_Command_Line, "(?i)Get-Clipboard|CopyFromScreen"), "13 Clipboard Screen Capture",
+    match(Process_Command_Line, "(?i)checkin"), "14 C2 Beaconing",
+    match(Process_Command_Line, "(?i)CreationTime.*LastWriteTime"), "15 Timestomping",
+    1=1, null())
+| where isnotnull(scenario)
+| stats dc(scenario) as unique_scenarios
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <title>Severity Reference (per Investigation Reports)</title>
+      <html>
+        <p style="font-size:13px; color:#999; margin-bottom:8px;">Severity is assigned per Incident Report (not a native Splunk field) — see <b>Incident-Reports/</b> for full justification per scenario.</p>
+        <table style="width:100%; font-size:12px; border-collapse:collapse;">
+          <tr style="color:#dc4e41;"><td>🔴 Critical (8)</td><td>01, 02, 03, 04, 08, 09, 11, 14</td></tr>
+          <tr style="color:#f8be34;"><td>🟠 High (7)</td><td>05, 06, 07, 10, 12, 13, 15</td></tr>
+        </table>
+      </html>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Events by Scenario</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| eval scenario=case(
+    match(Process_Command_Line, "(?i)insider"), "01 Insider Threat",
+    match(Process_Command_Line, "(?i)vssadmin"), "02 Ransomware",
+    match(Process_Command_Line, "(?i)wmic"), "03 Lateral Movement",
+    match(Process_Command_Line, "(?i)certutil.*urlcache"), "05 Phishing Attack",
+    match(Process_Command_Line, "(?i)mshta|rundll32|regsvr32"), "06 LOLBin Execution",
+    match(Process_Command_Line, "(?i)CurrentVersion\\\\Run"), "07 Registry Persistence",
+    match(Process_Command_Line, "(?i)DisableRealtimeMonitoring|advfirewall"), "08 AV Firewall Tampering",
+    match(Process_Command_Line, "(?i)lsass"), "09 Credential Dumping",
+    match(Process_Command_Line, "(?i)setspn|Rubeus|KerberosRequestorSecurityToken"), "11 Kerberoasting",
+    match(Process_Command_Line, "(?i)MicrosoftEdgeUpdateTaskMachine"), "12 Scheduled Task Persistence",
+    match(Process_Command_Line, "(?i)Get-Clipboard|CopyFromScreen"), "13 Clipboard Screen Capture",
+    match(Process_Command_Line, "(?i)nslookup.*c2-checkin|checkin"), "14 C2 Beaconing",
+    match(Process_Command_Line, "(?i)CreationTime.*LastWriteTime"), "15 Timestomping",
+    1=1, null())
+| where isnotnull(scenario)
+| stats count by scenario
+| sort scenario
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Scenario</option>
+        <option name="charting.axisTitleY.text">Event Count</option>
+        <option name="charting.legend.placement">none</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>MITRE ATT&amp;CK Tactic Breakdown</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| eval tactic=case(
+    match(Process_Command_Line, "(?i)insider|certutil.*urlcache"), "Initial Access",
+    match(Process_Command_Line, "(?i)mshta|rundll32|regsvr32"), "Execution",
+    match(Process_Command_Line, "(?i)CurrentVersion\\\\Run|MicrosoftEdgeUpdateTaskMachine"), "Persistence",
+    match(Process_Command_Line, "(?i)vssadmin|DisableRealtimeMonitoring|advfirewall|CreationTime.*LastWriteTime"), "Defense Evasion",
+    match(Process_Command_Line, "(?i)lsass|setspn|Rubeus|KerberosRequestorSecurityToken"), "Credential Access",
+    match(Process_Command_Line, "(?i)wmic"), "Lateral Movement",
+    match(Process_Command_Line, "(?i)Get-Clipboard|CopyFromScreen"), "Collection",
+    match(Process_Command_Line, "(?i)nslookup|checkin"), "Command and Control",
+    1=1, null())
+| where isnotnull(tactic)
+| stats count by tactic
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Scenario Activity Timeline</title>
+      <chart>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*insider*" OR Process_Command_Line="*vssadmin*" OR Process_Command_Line="*wmic*"
+ OR Process_Command_Line="*certutil*urlcache*" OR Process_Command_Line="*mshta*" OR Process_Command_Line="*rundll32*"
+ OR Process_Command_Line="*regsvr32*" OR Process_Command_Line="*CurrentVersion\\Run*"
+ OR Process_Command_Line="*DisableRealtimeMonitoring*" OR Process_Command_Line="*advfirewall*"
+ OR Process_Command_Line="*lsass*" OR Process_Command_Line="*setspn*" OR Process_Command_Line="*Rubeus*"
+ OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*" OR Process_Command_Line="*Get-Clipboard*"
+ OR Process_Command_Line="*CopyFromScreen*" OR Process_Command_Line="*checkin*"
+ OR Process_Command_Line="*CreationTime*LastWriteTime*")
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| timechart span=1d count
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleX.text">Date</option>
+        <option name="charting.axisTitleY.text">Events</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Top Suspicious Commands Observed</title>
+      <html>
+        <p style="font-size:12px; color:#999; margin-bottom:6px;">Excludes confirmed-legitimate rundll32.exe background noise (PcaSvc.dll, AppXDeploymentExtensions, SHCreateLocalServerRunDll COM activation) per Scenario 06 findings and dashboard-build observation.</p>
+      </html>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*insider*" OR Process_Command_Line="*vssadmin*" OR Process_Command_Line="*wmic*"
+ OR Process_Command_Line="*certutil*urlcache*" OR Process_Command_Line="*mshta*" OR Process_Command_Line="*rundll32*"
+ OR Process_Command_Line="*regsvr32*" OR Process_Command_Line="*CurrentVersion\\Run*"
+ OR Process_Command_Line="*DisableRealtimeMonitoring*" OR Process_Command_Line="*advfirewall*"
+ OR Process_Command_Line="*lsass*" OR Process_Command_Line="*setspn*" OR Process_Command_Line="*Rubeus*"
+ OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*" OR Process_Command_Line="*Get-Clipboard*"
+ OR Process_Command_Line="*CopyFromScreen*" OR Process_Command_Line="*checkin*"
+ OR Process_Command_Line="*CreationTime*LastWriteTime*")
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| stats count by New_Process_Name, Account_Name
+| sort -count
+| head 15
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <title>Recent Scenario Activity (Last 20 Events)</title>
+      <table>
+        <search>
+          <query>
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*insider*" OR Process_Command_Line="*vssadmin*" OR Process_Command_Line="*wmic*"
+ OR Process_Command_Line="*certutil*urlcache*" OR Process_Command_Line="*mshta*" OR Process_Command_Line="*rundll32*"
+ OR Process_Command_Line="*regsvr32*" OR Process_Command_Line="*CurrentVersion\\Run*"
+ OR Process_Command_Line="*DisableRealtimeMonitoring*" OR Process_Command_Line="*advfirewall*"
+ OR Process_Command_Line="*lsass*" OR Process_Command_Line="*setspn*" OR Process_Command_Line="*Rubeus*"
+ OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*" OR Process_Command_Line="*Get-Clipboard*"
+ OR Process_Command_Line="*CopyFromScreen*" OR Process_Command_Line="*checkin*"
+ OR Process_Command_Line="*CreationTime*LastWriteTime*")
+NOT (Process_Command_Line="*PcaSvc.dll*" OR Process_Command_Line="*AppXDeploymentExtensions*" OR Process_Command_Line="*SHCreateLocalServerRunDll*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+| head 20
+          </query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
