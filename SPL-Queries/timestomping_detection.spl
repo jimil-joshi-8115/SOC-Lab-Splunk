@@ -1,0 +1,22 @@
+# Scenario 15 — Indicator Removal: Timestomping (T1070.006)
+
+# Query 1: Detect PowerShell modifying file timestamp properties (the timestomp action itself)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*CreationTime*" Process_Command_Line="*LastWriteTime*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 2: Detect the baseline/verification check commands around the timestomp event
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+Process_Command_Line="*Get-Item*" Process_Command_Line="*CreationTime*"
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
+
+# Query 3: Combined view — full timestomping lifecycle (baseline check, modification, verification)
+index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*powershell.exe"
+(Process_Command_Line="*CreationTime*" OR Process_Command_Line="*LastWriteTime*" OR Process_Command_Line="*LastAccessTime*")
+| table _time, Account_Name, New_Process_Name, Process_Command_Line
+| sort -_time
