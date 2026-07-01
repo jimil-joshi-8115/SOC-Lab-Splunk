@@ -1,0 +1,692 @@
+<dashboard version="1.1" theme="dark">
+  <label>SOC L1 Capstone — 16 Labs + 15 Scenarios | Jimil Joshi</label>
+  <description>SOC Level 1 Home Lab | Analyst: Jimil Joshi | Host: JIMIL-JOSHI | MITRE ATT&amp;CK Full Lifecycle</description>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 1 — Lab KPI Counters
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <single>
+        <title>Failed Logons (Lab 01 / Scenario 10)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4625
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[5,15]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>New User Accounts Created (Lab 02 / Scenario 01)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4720
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,3]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Admin Group Changes (Lab 04 / Scenario 01)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4732
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Log Clearing Events (Lab 08 / Scenario 01)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=1102
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,3]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Malicious Services Installed (Lab 11)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:System" EventCode=7045
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,3]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>PowerShell Script Block Events (Lab 06 / 09 / 10)</title>
+        <search>
+          <query>index=main EventCode=4104
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[10,50]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 2 — Scenario KPI Counters (targeted only)
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <single>
+        <title>Ransomware — Shadow Copy Deletion (Sc 02)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*vssadmin*delete*"
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,2]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Lateral Movement — WMI Exec (Sc 03)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*wmic*process*call*create*"
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,2]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Data Exfiltration — DNS Tunnel (Sc 04)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*exfil-attacker*"
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,5]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Credential Dumping — LSASS (Sc 09)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+Process_Command_Line="*lsass*"
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,2]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>AV / Firewall Tamper (Sc 08)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*DisableRealtimeMonitoring*" OR Process_Command_Line="*advfirewall*allprofiles*")
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,2]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>C2 Beaconing Events (Sc 14)</title>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*c2-checkin*" OR Process_Command_Line="*checkin*exfil*")
+| stats count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="rangeColors">["0x53a051","0xf8be34","0xdc4e41"]</option>
+        <option name="rangeValues">[1,2]</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 3 — MITRE Tactic Bar + Daily Timeline
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>MITRE ATT&amp;CK Tactic Coverage — All 16 Labs + 15 Scenarios</title>
+      <chart>
+        <search>
+          <query>index=main (sourcetype="WinEventLog:Security" OR sourcetype="WinEventLog:System")
+| eval tactic=case(
+    EventCode=4625,"Credential Access",
+    EventCode=4624,"Initial Access",
+    EventCode=4720,"Persistence",
+    EventCode=4732,"Privilege Escalation",
+    EventCode=4740,"Impact",
+    EventCode=1102,"Defense Evasion",
+    EventCode=7045,"Persistence",
+    EventCode=4104 AND match(Message,"(?i)NetFirewall|advfirewall|DisableRealtimeMonitoring"),"Defense Evasion",
+    EventCode=4104 AND match(Message,"(?i)schtasks|ScheduledTask"),"Persistence",
+    EventCode=4104 AND match(Message,"(?i)Invoke|WebClient|ToBase64"),"Execution",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)vssadmin"),"Impact",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)wmic.*process.*call.*create"),"Lateral Movement",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)certutil.*urlcache"),"Initial Access",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)mshta|regsvr32|rundll32"),"Execution",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)CurrentVersion.Run|MicrosoftEdgeUpdateTaskMachine"),"Persistence",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)DisableRealtimeMonitoring|advfirewall"),"Defense Evasion",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)lsass|Rubeus|setspn"),"Credential Access",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)exfil-attacker|Compress-Archive"),"Exfiltration",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)Get-Clipboard|CopyFromScreen"),"Collection",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)c2-checkin|Invoke-WebRequest.*checkin"),"Command and Control",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)CreationTime.*LastWriteTime"),"Defense Evasion",
+    1=1,null())
+| where isnotnull(tactic)
+| stats count by tactic
+| sort -count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.barMinimumWidth">20</option>
+        <option name="charting.axisTitleX.text">MITRE Tactic</option>
+        <option name="charting.axisTitleY.text">Event Count</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.seriesColors">["0x3b82f6"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Lab vs Scenario Activity Timeline (Daily)</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security"
+(EventCode=4625 OR EventCode=4720 OR EventCode=4740 OR EventCode=4732 OR EventCode=1102 OR EventCode=4624)
+| eval category="Labs"
+| append
+    [search index=main sourcetype="WinEventLog:System" EventCode=7045
+     | eval category="Labs"]
+| append
+    [search index=main EventCode=4104
+     | eval category="Labs"]
+| append
+    [search index=main sourcetype="WinEventLog:Security" EventCode=4688
+     (Process_Command_Line="*vssadmin*delete*"
+      OR Process_Command_Line="*wmic*process*call*create*"
+      OR Process_Command_Line="*exfil-attacker*"
+      OR Process_Command_Line="*certutil*urlcache*"
+      OR Process_Command_Line="*mshta*"
+      OR Process_Command_Line="*regsvr32*"
+      OR Process_Command_Line="*DisableRealtimeMonitoring*"
+      OR Process_Command_Line="*lsass*"
+      OR Process_Command_Line="*Rubeus*"
+      OR Process_Command_Line="*setspn*"
+      OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*"
+      OR Process_Command_Line="*Get-Clipboard*"
+      OR Process_Command_Line="*CopyFromScreen*"
+      OR Process_Command_Line="*c2-checkin*"
+      OR Process_Command_Line="*CreationTime*LastWriteTime*"
+      OR Process_Command_Line="*Compress-Archive*SensitiveData*"
+      OR Process_Command_Line="*advfirewall*allprofiles*")
+     | eval category="Scenarios"]
+| timechart span=1d count by category</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.axisTitleX.text">Date</option>
+        <option name="charting.axisTitleY.text">Events</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="charting.seriesColors">["0x3b82f6","0xf59e0b"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">300</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 4 — 16 Labs breakdown + Top Accounts
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>16 Labs — Event Count by Lab</title>
+      <table>
+        <search>
+          <query>index=main
+(sourcetype="WinEventLog:Security"
+ OR sourcetype="WinEventLog:System"
+ OR sourcetype="firewall_log"
+ OR sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational")
+| eval lab=case(
+    EventCode=4625,"Lab 01 — Brute Force (4625)",
+    EventCode=4720,"Lab 02 — New User Created (4720)",
+    EventCode=4740,"Lab 03 — Account Lockout (4740)",
+    EventCode=4732,"Lab 04 — Admin Group Change (4732)",
+    EventCode=4624,"Lab 05 — RDP Login (4624)",
+    EventCode=4104 AND NOT match(Message,"(?i)NetFirewall|schtasks|ScheduledTask"),"Lab 06 — Suspicious PowerShell (4104)",
+    EventCode=1102,"Lab 08 — Log Clearing (1102)",
+    EventCode=4104 AND match(Message,"(?i)NetFirewall|advfirewall"),"Lab 09 — Firewall Disabled (4104)",
+    EventCode=4104 AND match(Message,"(?i)schtasks|ScheduledTask"),"Lab 10 — Scheduled Task (4104)",
+    EventCode=7045,"Lab 11 — Malicious Service (7045)",
+    sourcetype="firewall_log","Lab 12 — Port Scan (Firewall Log)",
+    sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational","Lab 13 — DNS Analysis",
+    1=1,null())
+| where isnotnull(lab)
+| stats count by lab
+| sort lab</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Top Accounts in Security Events</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security"
+(EventCode=4625 OR EventCode=4720 OR EventCode=4732 OR EventCode=4740 OR EventCode=1102)
+| stats count by Account_Name
+| where Account_Name != "-" AND len(Account_Name) > 1
+| sort -count
+| head 8</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Account</option>
+        <option name="charting.axisTitleY.text">Events</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.seriesColors">["0x60a5fa"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">280</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 5 — 15 Scenarios breakdown + Severity chart
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>15 Scenarios — Event Count by Scenario</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security"
+(EventCode=4625 OR EventCode=4720 OR EventCode=4732 OR EventCode=1102 OR EventCode=4688)
+| eval scenario=case(
+    (EventCode=4720 OR EventCode=4732 OR EventCode=1102),"Sc 01 — Insider Threat (T1136/T1098/T1070)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)vssadmin.*delete"),"Sc 02 — Ransomware (T1490)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)wmic.*process.*call.*create"),"Sc 03 — Lateral Movement (T1021/T1047)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)exfil-attacker|Compress-Archive"),"Sc 04 — Data Exfiltration (T1048/T1560)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)certutil.*urlcache"),"Sc 05 — Phishing (T1566)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)mshta|regsvr32|rundll32"),"Sc 06 — LOLBin Execution (T1218)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)CurrentVersion.Run") AND NOT match(Process_Command_Line,"(?i)MicrosoftEdgeUpdateTaskMachine"),"Sc 07 — Registry Persistence (T1547)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)DisableRealtimeMonitoring|advfirewall.*allprofiles"),"Sc 08 — AV/FW Tampering (T1562)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)lsass|procdump"),"Sc 09 — Credential Dumping (T1003)",
+    EventCode=4625,"Sc 10 — Password Spray (T1110.003)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)Rubeus|setspn|KerberosRequestorSecurityToken"),"Sc 11 — Kerberoasting (T1558)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)MicrosoftEdgeUpdateTaskMachine"),"Sc 12 — Sched Task Persistence (T1053)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)Get-Clipboard|CopyFromScreen"),"Sc 13 — Clipboard/Screen Capture (T1115)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)c2-checkin|Invoke-WebRequest.*checkin"),"Sc 14 — C2 Beaconing (T1071)",
+    EventCode=4688 AND match(Process_Command_Line,"(?i)CreationTime.*LastWriteTime"),"Sc 15 — Timestomping (T1070.006)",
+    1=1,null())
+| where isnotnull(scenario)
+| stats count by scenario
+| sort scenario</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Scenario Severity Score (Static Reference)</title>
+      <chart>
+        <search>
+          <query>| makeresults count=15
+| streamstats count as row
+| eval scenario=case(
+    row=1,"Sc01 Insider",row=2,"Sc02 Ransomware",row=3,"Sc03 Lateral Move",
+    row=4,"Sc04 Data Exfil",row=5,"Sc05 Phishing",row=6,"Sc06 LOLBins",
+    row=7,"Sc07 Registry",row=8,"Sc08 AV Tamper",row=9,"Sc09 Cred Dump",
+    row=10,"Sc10 Pwd Spray",row=11,"Sc11 Kerberoast",row=12,"Sc12 SchedTask",
+    row=13,"Sc13 Collection",row=14,"Sc14 C2 Beacon",row=15,"Sc15 Timestomp")
+| eval severity=case(
+    row=1,10,row=2,10,row=3,10,row=4,9,row=5,8,
+    row=6,7,row=7,8,row=8,9,row=9,10,row=10,8,
+    row=11,9,row=12,8,row=13,7,row=14,9,row=15,7)
+| table scenario, severity</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Scenario</option>
+        <option name="charting.axisTitleY.text">Severity (1-10)</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.seriesColors">["0xdc4e41"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">280</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 6 — 3 Correlation Rules
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>Correlation 1 — Brute Force Then Successful Login (T1110 + T1078)</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" (EventCode=4625 OR EventCode=4624)
+| stats count(eval(EventCode="4625")) as failed_count,
+        count(eval(EventCode="4624")) as success_count
+  by Account_Name, ComputerName
+| where failed_count >= 3 AND success_count >= 1
+| eval risk="HIGH — Possible Brute Force Success"
+| table Account_Name, ComputerName, failed_count, success_count, risk
+| sort -failed_count</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Correlation 2 — Backdoor Account + Admin Escalation (T1136 + T1098)</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" (EventCode=4720 OR EventCode=4732)
+| stats count(eval(EventCode="4720")) as new_user,
+        count(eval(EventCode="4732")) as added_to_admin
+  by Account_Name, ComputerName
+| where new_user >= 1 AND added_to_admin >= 1
+| eval risk="CRITICAL — Backdoor Admin Account Created"
+| table Account_Name, ComputerName, new_user, added_to_admin, risk</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Correlation 3 — Attack Then Evidence Destruction (T1110 + T1070)</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" (EventCode=4625 OR EventCode=1102)
+| stats count(eval(EventCode="4625")) as failed_logins,
+        count(eval(EventCode="1102")) as logs_cleared
+  by Account_Name, ComputerName
+| where failed_logins >= 3 AND logs_cleared >= 1
+| eval risk="CRITICAL — Attack Then Evidence Destroyed"
+| table Account_Name, ComputerName, failed_logins, logs_cleared, risk</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 7 — High-Risk Commands Table (Scenarios only)
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>High-Risk Commands Detected — Your Scenario Simulations (Last 50)</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+(Process_Command_Line="*vssadmin*delete*"
+ OR Process_Command_Line="*wmic*process*call*create*"
+ OR Process_Command_Line="*exfil-attacker*"
+ OR Process_Command_Line="*certutil*urlcache*"
+ OR Process_Command_Line="*mshta*"
+ OR Process_Command_Line="*regsvr32*"
+ OR Process_Command_Line="*DisableRealtimeMonitoring*"
+ OR Process_Command_Line="*advfirewall*allprofiles*"
+ OR Process_Command_Line="*lsass*"
+ OR Process_Command_Line="*Rubeus*"
+ OR Process_Command_Line="*setspn*"
+ OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*"
+ OR Process_Command_Line="*Get-Clipboard*"
+ OR Process_Command_Line="*CopyFromScreen*"
+ OR Process_Command_Line="*c2-checkin*"
+ OR Process_Command_Line="*CreationTime*LastWriteTime*"
+ OR Process_Command_Line="*Compress-Archive*SensitiveData*")
+| eval threat=case(
+    match(Process_Command_Line,"(?i)vssadmin.*delete"),"[CRITICAL] Ransomware — Shadow Copy Deletion",
+    match(Process_Command_Line,"(?i)wmic.*process.*call.*create"),"[CRITICAL] Lateral Movement — WMI Exec",
+    match(Process_Command_Line,"(?i)exfil-attacker|Compress-Archive"),"[CRITICAL] Data Exfiltration — DNS Tunnel",
+    match(Process_Command_Line,"(?i)certutil.*urlcache"),"[CRITICAL] Phishing — Payload Download",
+    match(Process_Command_Line,"(?i)DisableRealtimeMonitoring"),"[CRITICAL] AV Tamper — Defender Disabled",
+    match(Process_Command_Line,"(?i)advfirewall.*allprofiles"),"[CRITICAL] Firewall Disabled",
+    match(Process_Command_Line,"(?i)lsass|procdump"),"[CRITICAL] Credential Dump — LSASS",
+    match(Process_Command_Line,"(?i)Rubeus|setspn"),"[CRITICAL] Kerberoasting",
+    match(Process_Command_Line,"(?i)c2-checkin"),"[CRITICAL] C2 Beaconing",
+    match(Process_Command_Line,"(?i)mshta|regsvr32|rundll32"),"[HIGH] LOLBin Execution",
+    match(Process_Command_Line,"(?i)MicrosoftEdgeUpdateTaskMachine"),"[HIGH] Sched Task — Disguised Name",
+    match(Process_Command_Line,"(?i)Get-Clipboard|CopyFromScreen"),"[HIGH] Collection — Clipboard/Screen",
+    match(Process_Command_Line,"(?i)CreationTime.*LastWriteTime"),"[HIGH] Timestomping — Anti-Forensics",
+    1=1,"[INFO] Other")
+| table _time, Account_Name, threat, Process_Command_Line
+| sort -_time
+| head 50</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="wrap">true</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 8 — Port Scan + DNS Panels (Labs 12 + 13)
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>Lab 12 — Port Scan: Top Destination Ports Hit</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype="firewall_log"
+| rex field=_raw "(?P&lt;action&gt;\w+)\s+(?P&lt;protocol&gt;\w+)\s+(?P&lt;src_ip&gt;[\d.]+)\s+(?P&lt;dst_ip&gt;[\d.]+)\s+(?P&lt;src_port&gt;\d+)\s+(?P&lt;dst_port&gt;\d+)"
+| stats count by dst_port
+| sort -count
+| head 15</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Destination Port</option>
+        <option name="charting.axisTitleY.text">Hit Count</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.seriesColors">["0xf59e0b"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">260</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Lab 13 — DNS: Top Queried Domains</title>
+      <chart>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Microsoft-Windows-DNS-Client/Operational"
+| rex field=_raw "(?P&lt;domain&gt;[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})"
+| stats count by domain
+| sort -count
+| head 15</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.axisTitleX.text">Domain</option>
+        <option name="charting.axisTitleY.text">Query Count</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="charting.seriesColors">["0x34d399"]</option>
+        <option name="charting.backgroundColor">transparent</option>
+        <option name="height">260</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Suspicious DNS Queries — Sc 04 Data Exfil + Sc 14 C2</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security" EventCode=4688
+New_Process_Name="*nslookup*"
+| rex field=Process_Command_Line "nslookup\s+(?P&lt;queried_domain&gt;\S+)"
+| where isnotnull(queried_domain)
+| stats count by queried_domain, Account_Name
+| eval suspicious=if(match(queried_domain,"(?i)exfil|attacker|c2-|checkin|chunk"),"SUSPICIOUS","Benign")
+| sort -count
+| table queried_domain, Account_Name, count, suspicious</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+  </row>
+
+  <!-- ═══════════════════════════════════════════════
+       ROW 9 — Recent Events Live Feed
+       ═══════════════════════════════════════════════ -->
+  <row>
+    <panel>
+      <title>Recent Security Events — All Labs + Scenarios (Last 30)</title>
+      <table>
+        <search>
+          <query>index=main sourcetype="WinEventLog:Security"
+(EventCode=4625 OR EventCode=4720 OR EventCode=4740 OR EventCode=4732 OR EventCode=1102 OR EventCode=4624)
+| eval event_label=case(
+    EventCode=4625,"Failed Logon — Lab01 / Sc10",
+    EventCode=4720,"New User Created — Lab02 / Sc01",
+    EventCode=4740,"Account Lockout — Lab03",
+    EventCode=4732,"Admin Group Change — Lab04 / Sc01",
+    EventCode=4624,"Successful Login — Lab05",
+    EventCode=1102,"Log Clearing — Lab08 / Sc01",
+    1=1,"Other")
+| append
+    [search index=main sourcetype="WinEventLog:System" EventCode=7045
+     | eval event_label="Malicious Service — Lab11"]
+| append
+    [search index=main sourcetype="WinEventLog:Security" EventCode=4688
+     (Process_Command_Line="*vssadmin*delete*"
+      OR Process_Command_Line="*wmic*process*call*create*"
+      OR Process_Command_Line="*exfil-attacker*"
+      OR Process_Command_Line="*certutil*urlcache*"
+      OR Process_Command_Line="*mshta*"
+      OR Process_Command_Line="*regsvr32*"
+      OR Process_Command_Line="*DisableRealtimeMonitoring*"
+      OR Process_Command_Line="*lsass*"
+      OR Process_Command_Line="*Rubeus*"
+      OR Process_Command_Line="*MicrosoftEdgeUpdateTaskMachine*"
+      OR Process_Command_Line="*Get-Clipboard*"
+      OR Process_Command_Line="*CopyFromScreen*"
+      OR Process_Command_Line="*c2-checkin*"
+      OR Process_Command_Line="*CreationTime*LastWriteTime*"
+      OR Process_Command_Line="*Compress-Archive*SensitiveData*"
+      OR Process_Command_Line="*advfirewall*allprofiles*")
+     | eval event_label=case(
+         match(Process_Command_Line,"(?i)vssadmin"),"Ransomware Shadow Copy — Sc02",
+         match(Process_Command_Line,"(?i)wmic.*process.*call.*create"),"Lateral Move WMI — Sc03",
+         match(Process_Command_Line,"(?i)exfil-attacker|SensitiveData"),"Data Exfiltration — Sc04",
+         match(Process_Command_Line,"(?i)certutil.*urlcache"),"Phishing Certutil — Sc05",
+         match(Process_Command_Line,"(?i)mshta|regsvr32"),"LOLBin Execution — Sc06",
+         match(Process_Command_Line,"(?i)DisableRealtimeMonitoring"),"AV Tamper — Sc08",
+         match(Process_Command_Line,"(?i)advfirewall.*allprofiles"),"Firewall Disabled — Sc08",
+         match(Process_Command_Line,"(?i)lsass"),"Credential Dump LSASS — Sc09",
+         match(Process_Command_Line,"(?i)Rubeus"),"Kerberoasting — Sc11",
+         match(Process_Command_Line,"(?i)MicrosoftEdgeUpdateTaskMachine"),"Sched Task Persist — Sc12",
+         match(Process_Command_Line,"(?i)Get-Clipboard|CopyFromScreen"),"Collection — Sc13",
+         match(Process_Command_Line,"(?i)c2-checkin"),"C2 Beaconing — Sc14",
+         match(Process_Command_Line,"(?i)CreationTime.*LastWriteTime"),"Timestomping — Sc15",
+         1=1,"Scenario Process Event")]
+| table _time, event_label, Account_Name, ComputerName
+| sort -_time
+| head 30</query>
+          <earliest>0</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="rowNumbers">true</option>
+        <option name="dataOverlayMode">none</option>
+      </table>
+    </panel>
+  </row>
+
+</dashboard>
